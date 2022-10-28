@@ -20,6 +20,17 @@ colab notebook allows user to
 - export_listings(type=FOR_SALE||FOR_RENT)
     - control output columns
 - export_raw_listings()
+---
+goal:
+- FOR_SALE / FOR_RENT given a city or zipcodes
+- export formatted data for sheets import
+- eval 1% rules against FOR_SALE homes
+    - get comparable rents
+        - zestimate rent
+        - similar listed FOR_RENT (by area, bed, bath, etc)
+        - take average for total FOR_RENT / zipcode average
+        - get price history for non-listed properties 
+        - user input
 """
 
 logging.basicConfig(level=logging.INFO)
@@ -42,6 +53,7 @@ def format_data(listings):
 
     # TODO: parse rental street unit num
     # TODO: explode rental units
+    # TODO: try getting home details for rentals
 
     print(data.df)
 
