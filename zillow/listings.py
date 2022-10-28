@@ -15,6 +15,13 @@ log = logging.getLogger(__name__)
 >>> Search(zipcodes=[43085, 43206])
 """
 
+# output setting defaults
+DATA_DIR: str = "./data"
+CACHE_RAW_ZIPCODES: bool = True
+WRITE_RAW_LISTINGS: bool = False
+RAW_ZIPCODES_FILE: str = "zillow/zipcode/{}.json"
+RAW_LISTINGS_FILE: str = "zillow/listings.json"
+
 
 class Search:
     BASE_URL = "https://www.zillow.com"
@@ -35,14 +42,14 @@ class Search:
         self.zipcodes = zipcodes if zipcodes else fetch_zipcodes(city, state, exclude_zipcodes)
         log.info(f"Searching {len(self.zipcodes)} zipcodes: {self.zipcodes}")
         self.output_settings = {}
-        self.update_output_settings()
+        self.set_output_settings()
         self.session = Session()
 
-    def update_output_settings(self, data_dir: str = "./data",
-                               cache_raw_zipcodes: bool = True,
-                               raw_zipcode_file: str = "zillow/zipcode/{}.json",
-                               write_raw_listings: bool = False,
-                               raw_listings_file: str = "zillow/listings.json"):
+    def set_output_settings(self, data_dir: str = DATA_DIR,
+                            cache_raw_zipcodes: bool = CACHE_RAW_ZIPCODES,
+                            raw_zipcode_file: str = RAW_ZIPCODES_FILE,
+                            write_raw_listings: bool = WRITE_RAW_LISTINGS,
+                            raw_listings_file: str = RAW_LISTINGS_FILE):
         """
         Controls file output settings, call before fetching listings to update
         :param data_dir: root dir for all other paths
@@ -58,6 +65,7 @@ class Search:
                                 "write_raw_listings": write_raw_listings,
                                 "raw_zipcode_file": data_dir + raw_zipcode_file,
                                 "raw_listings_file": data_dir + raw_listings_file}
+        self.print_output_settings()
 
     def get_all_listings(self, read_cache: bool = False):
         """
@@ -112,3 +120,9 @@ class Search:
             return self._scrape_results(f"{self.BASE_URL}{next_url}", acc)
         assert len(acc) == total_listings  # TODO: rm
         return acc
+
+    def print_output_settings(self):
+        log.info(f"OUTPUT SETTINGS:\n\tCache raw listings by zipcode:\t"
+                 f" {self.output_settings.get('write_raw_zipcodes')} ({self.output_settings.get('raw_zipcode_file')})"
+                 f"\n\tWrite all raw listings:\t\t\t {self.output_settings.get('write_raw_listings')} "
+                 f"({self.output_settings.get('raw_listings_file')})")
