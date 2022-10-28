@@ -1,7 +1,9 @@
+import json
 import logging
 
 from zillow.listings import Search
 from zillow.formatter import ListingFormatter, DETAILS, HOME, ADDRESS
+from zillow.property import Property
 
 """
 Input: city, state ?? list of zip codes to exclude || list of zip codes
@@ -28,7 +30,7 @@ goal:
     - get comparable rents
         - zestimate rent
         - similar listed FOR_RENT (by area, bed, bath, etc)
-        - take average for total FOR_RENT / zipcode average
+        - take average for total FOR_RENT / zipcode average - per sqft
         - get price history for non-listed properties 
         - user input
 """
@@ -40,16 +42,17 @@ def format_data(listings):
     """transform and format listing data"""
 
     data = ListingFormatter(listings)
-    # print(data.sample())
 
     """filter"""
-    data.filter_for_sale()
-    # data.filter_for_rent()
+    # data.filter_for_sale()
+    data.filter_for_rent()
+
+    # print(data.sample())
 
     """columns"""
-    data.select(DETAILS, ADDRESS, HOME, ["units"])
+    data.select(DETAILS, ADDRESS, HOME, ["units", "lotId"])
     data.price_per_sqft()
-    data.fix_urls()
+    # data.fix_urls()
 
     # TODO: parse rental street unit num
     # TODO: explode rental units
@@ -65,5 +68,10 @@ def main():
     # TODO: export formatted
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
+
+
+url = "https://www.zillow.com/homedetails/7830-Alta-Dr-503-103-Columbus-OH-43085/2071536922_zpid/"
+# url = "/b/the-thomas-columbus-oh-ByK4GB/"
+rp = Property(url=url)
