@@ -1,7 +1,11 @@
 import json
+import logging
 import re
 
 from zillow.session import Session
+
+
+log = logging.getLogger(__name__)
 
 
 class Property:
@@ -13,6 +17,7 @@ class Property:
         self.url = f"{self.BASE_URL}{url}" if partial_url else url
         if partial_url:
             urls = self.get_rental_units()
+            print(urls)
 
         # self.data = self._scrape_property_results()
 
@@ -20,8 +25,13 @@ class Property:
         building = self._scrape_rental_results()
         address = building.get("address")
         floor_plans = building.get("floorPlans")
+        fallback = building.get("bestMatchedUnit").get("hdpUrl")
         unit_urls = []
         for plan in floor_plans:
+            if "units" not in plan or not plan.get("units"):
+                log.debug(f"No units found: {plan}")
+                unit_urls.append(f"{self.BASE_URL}{fallback.replace(building.get('zpid'), plan.get('zpid'))}")
+                continue
             for unit in plan.get("units"):
                 unit_num = '-'.join(re.findall(r'[0-9]+', unit.get('unitNumber')))
                 unit_urls.append(f"{self.BASE_URL}/homedetails/{address.get('streetAddress').replace(' ', '-')}"

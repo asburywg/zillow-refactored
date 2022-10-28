@@ -72,6 +72,9 @@ def main():
 #     main()
 
 
-url = "https://www.zillow.com/homedetails/7830-Alta-Dr-503-103-Columbus-OH-43085/2071536922_zpid/"
+# url = "https://www.zillow.com/homedetails/7830-Alta-Dr-503-103-Columbus-OH-43085/2071536922_zpid/"
 # url = "/b/the-thomas-columbus-oh-ByK4GB/"
+# url = "/b/traditions-at-worthington-woods-worthington-oh-5gKnT7/"
+# url = "/b/187-wilson-dr-columbus-oh-5gpSDL/"
+url = "/b/summerside-apartments-columbus-oh-5wyXP7/"
 rp = Property(url=url)
