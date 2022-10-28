@@ -1,4 +1,7 @@
+import logging
 
+from zillow.listings import Search
+from zillow.formatter import ListingFormatter, DETAILS, HOME, ADDRESS
 
 """
 Input: city, state ?? list of zip codes to exclude || list of zip codes
@@ -18,14 +21,37 @@ colab notebook allows user to
     - control output columns
 - export_raw_listings()
 """
-import logging
-
-from zillow.listings import Search
 
 logging.basicConfig(level=logging.INFO)
 
 
-search = Search(zipcodes=[43085])
-search.set_output_settings(write_raw_listings=True)
+def format_data(listings):
+    """transform and format listing data"""
 
-search.get_all_listings(read_cache=True)
+    data = ListingFormatter(listings)
+    # print(data.sample())
+
+    """filter"""
+    data.filter_for_sale()
+    # data.filter_for_rent()
+
+    """columns"""
+    data.select(DETAILS, ADDRESS, HOME, ["units"])
+    data.price_per_sqft()
+    data.fix_urls()
+
+    # TODO: parse rental street unit num
+    # TODO: explode rental units
+
+    print(data.df)
+
+
+def main():
+    search = Search(zipcodes=[43085])
+    listings = search.get_all_listings(read_cache=True)
+    format_data(listings)
+    # TODO: export formatted
+
+
+if __name__ == "__main__":
+    main()
