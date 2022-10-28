@@ -11,8 +11,18 @@ create python package:
 ---
 colab notebook allows user to
 - Search("area" || [zipcodes], exclude=[zipcodes])
+    - Search(city="columbus", state="ohio")
+    - Search(city="columbus", state="ohio", exclude_zipcodes=[12345])
+    - Search(zipcodes=[1234, 1235, 1246])
 - export_listings(type=FOR_SALE||FOR_RENT)
     - control output columns
 - export_raw_listings()
 """
+import logging
 
+from zillow.listings import Search
+
+logging.basicConfig(level=logging.INFO)
+
+
+Search("columbus", "ohio")
