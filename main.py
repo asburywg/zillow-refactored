@@ -26,4 +26,4 @@ logging.basicConfig(level=logging.INFO)
 
 
 # Search("columbus", "ohio")
-Search(zipcodes=[43085]).get_all_listings()
+Search(zipcodes=[43085]).get_all_listings(read_cache=True)

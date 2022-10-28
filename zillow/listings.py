@@ -3,7 +3,7 @@ import logging
 import re
 from typing import List, Optional
 
-from zillow.file_util import write_intermediary
+from zillow.file_util import write_json, file_exists, read_json
 from zillow.session import Session
 from zillow.zipcode_util import fetch_zipcodes
 
@@ -18,8 +18,9 @@ log = logging.getLogger(__name__)
 
 class Search:
     BASE_URL = "https://www.zillow.com"
+    # raw Zillow output can be written out per zipcode and/or after all zipcodes have been processed
     DEFAULT_OUTPUT_SETTINGS = {
-        "write_raw_zipcodes": False,
+        "write_raw_zipcodes": True,
         "raw_zipcode_file": "./data/zillow/zipcode/{}.json",
         "write_raw_listings": True,
         "raw_listings_file": "./data/zillow/listings.json",
@@ -46,23 +47,34 @@ class Search:
         self.output_settings = output_settings
         self.session = Session()
 
-    def get_all_listings(self):
+    def get_all_listings(self, read_cache: bool = False):
+        """
+        Returns all FOR_SALE/FOR_RENT listings for zipcodes in Search
+        :param read_cache: read zipcode intermediary files if exists to reduce calls to zillow
+        :return:
+        """
         listings = []
         for zc in self.zipcodes:
-            listings.extend(self._zipcode_listings(zc))
+            listings.extend(self._zipcode_listings(zc, read_cache))
         if self.output_settings.get("write_raw_listings"):
-            write_intermediary(listings, self.output_settings.get("raw_listings_file"))
+            write_json(listings, self.output_settings.get("raw_listings_file"))
         return listings
 
-    def _zipcode_listings(self, zipcode: int):
+    def _zipcode_listings(self, zipcode: int, read_cache: bool):
+        cache_file = self.output_settings.get("raw_zipcode_file").format(zipcode)
+        if read_cache and file_exists(cache_file):
+            log.info(f"Reading from cached file: {cache_file}")
+            return read_json(cache_file)
+
         log.info(f'Scraping listings in {zipcode}')
         for_rent = self._scrape_results(f"{self.BASE_URL}/homes/for_rent/{zipcode}_rb/")
         log.info(f'Listings FOR_RENT in {zipcode}: {len(for_rent)}')
         for_sale = self._scrape_results(f"{self.BASE_URL}/homes/for_sale/{zipcode}_rb/")
         log.info(f'Listings FOR_SALE in {zipcode}: {len(for_sale)}')
         listings = for_rent + for_sale
+
         if self.output_settings.get("write_raw_zipcodes"):
-            write_intermediary(listings, self.output_settings.get("raw_zipcode_file").format(zipcode))
+            write_json(listings, cache_file)
         return listings
 
     def _scrape_results(self, url, acc=None):
