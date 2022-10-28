@@ -25,4 +25,5 @@ from zillow.listings import Search
 logging.basicConfig(level=logging.INFO)
 
 
-Search("columbus", "ohio")
+# Search("columbus", "ohio")
+Search(zipcodes=[43085]).get_all_listings()
