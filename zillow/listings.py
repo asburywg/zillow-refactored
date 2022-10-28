@@ -1,9 +1,9 @@
 import json
 import logging
 import re
-from typing import List, Optional
+from typing import List
 
-from zillow.file_util import write_json, file_exists, read_json
+from zillow.file_util import write_json, file_exists, read_json, is_json_file
 from zillow.session import Session
 from zillow.zipcode_util import fetch_zipcodes
 
@@ -18,34 +18,46 @@ log = logging.getLogger(__name__)
 
 class Search:
     BASE_URL = "https://www.zillow.com"
-    # raw Zillow output can be written out per zipcode and/or after all zipcodes have been processed
-    DEFAULT_OUTPUT_SETTINGS = {
-        "write_raw_zipcodes": True,
-        "raw_zipcode_file": "./data/zillow/zipcode/{}.json",
-        "write_raw_listings": True,
-        "raw_listings_file": "./data/zillow/listings.json",
-    }
 
     def __init__(self, city: str = None, state: str = None,
                  exclude_zipcodes: List[int] = None,
-                 zipcodes: List[int] = None, output_settings: Optional[dict] = None):
+                 zipcodes: List[int] = None):
         """
         Search listings by city/state (using zipcode lookup) or a list of zipcodes
         :param city: location used for zipcode lookup
         :param state: location used for zipcode lookup
         :param exclude_zipcodes: list of zipcodes to exclude from city/state zipcode lookup
         :param zipcodes: skip zipcode lookup and only search for specified list
-        :param output_settings: controls which intermediary files are written and where to
         """
         # user input should be either city/state or [zipcodes]
-        if output_settings is None:
-            output_settings = self.DEFAULT_OUTPUT_SETTINGS
         if not (city and state) and not zipcodes or (city and state and zipcodes):
             raise TypeError("Specify *either* city and state or a list of zipcodes to search.")
         self.zipcodes = zipcodes if zipcodes else fetch_zipcodes(city, state, exclude_zipcodes)
         log.info(f"Searching {len(self.zipcodes)} zipcodes: {self.zipcodes}")
-        self.output_settings = output_settings
+        self.output_settings = {}
+        self.update_output_settings()
         self.session = Session()
+
+    def update_output_settings(self, data_dir: str = "./data",
+                               cache_raw_zipcodes: bool = True,
+                               raw_zipcode_file: str = "zillow/zipcode/{}.json",
+                               write_raw_listings: bool = False,
+                               raw_listings_file: str = "zillow/listings.json"):
+        """
+        Controls file output settings, call before fetching listings to update
+        :param data_dir: root dir for all other paths
+        :param cache_raw_zipcodes: boolean to write each zipcode listings from zillow
+        :param raw_zipcode_file: relative path for zipcode files
+        :param write_raw_listings: boolean to write all raw results for Search zipcodes
+        :param raw_listings_file: relative path for raw listings
+        """
+        data_dir = f"{data_dir}/" if data_dir[-1] != "/" else data_dir
+        if not is_json_file(raw_zipcode_file) or not is_json_file(raw_listings_file):
+            raise TypeError("raw_zipcode_file and raw_listings_file must be relative paths to JSON files")
+        self.output_settings = {"write_raw_zipcodes": cache_raw_zipcodes,
+                                "write_raw_listings": write_raw_listings,
+                                "raw_zipcode_file": data_dir + raw_zipcode_file,
+                                "raw_listings_file": data_dir + raw_listings_file}
 
     def get_all_listings(self, read_cache: bool = False):
         """

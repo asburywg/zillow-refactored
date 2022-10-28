@@ -27,3 +27,7 @@ def read_json(file: str):
         return
     with open(file, 'r') as f:
         return json.load(f)
+
+
+def is_json_file(file: str):
+    return Path(file).suffix == ".json"
