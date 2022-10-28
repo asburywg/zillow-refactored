@@ -1,9 +1,9 @@
 import json
 import logging
 import re
-from typing import List
+from typing import List, Optional
 
-from zillow.cache_util import cache_intermediary
+from zillow.file_util import write_intermediary
 from zillow.session import Session
 from zillow.zipcode_util import fetch_zipcodes
 
@@ -18,41 +18,52 @@ log = logging.getLogger(__name__)
 
 class Search:
     BASE_URL = "https://www.zillow.com"
-    DEFAULT_DATA_DIR = "./data"
+    DEFAULT_OUTPUT_SETTINGS = {
+        "write_raw_zipcodes": False,
+        "raw_zipcode_file": "./data/zillow/zipcode/{}.json",
+        "write_raw_listings": True,
+        "raw_listings_file": "./data/zillow/listings.json",
+    }
 
     def __init__(self, city: str = None, state: str = None,
                  exclude_zipcodes: List[int] = None,
-                 zipcodes: List[int] = None, data_dir: str = DEFAULT_DATA_DIR):
+                 zipcodes: List[int] = None, output_settings: Optional[dict] = None):
         """
         Search listings by city/state (using zipcode lookup) or a list of zipcodes
         :param city: location used for zipcode lookup
         :param state: location used for zipcode lookup
         :param exclude_zipcodes: list of zipcodes to exclude from city/state zipcode lookup
         :param zipcodes: skip zipcode lookup and only search for specified list
-        :param data_dir: root directory to store all output
+        :param output_settings: controls which intermediary files are written and where to
         """
         # user input should be either city/state or [zipcodes]
+        if output_settings is None:
+            output_settings = self.DEFAULT_OUTPUT_SETTINGS
         if not (city and state) and not zipcodes or (city and state and zipcodes):
             raise TypeError("Specify *either* city and state or a list of zipcodes to search.")
         self.zipcodes = zipcodes if zipcodes else fetch_zipcodes(city, state, exclude_zipcodes)
         log.info(f"Searching {len(self.zipcodes)} zipcodes: {self.zipcodes}")
-        self.data_dir = data_dir
+        self.output_settings = output_settings
         self.session = Session()
 
-    def get_all_listings(self, cache: bool = False, cache_dir: str = "cache"):
+    def get_all_listings(self):
+        listings = []
         for zc in self.zipcodes:
-            log.info(f'Scraping listings in {zc}')
-            listings = self._zipcode_listings(zc)
-            if cache:
-                cache_intermediary(zc, listings, f"{self.data_dir}/{cache_dir}")
-            return listings
+            listings.extend(self._zipcode_listings(zc))
+        if self.output_settings.get("write_raw_listings"):
+            write_intermediary(listings, self.output_settings.get("raw_listings_file"))
+        return listings
 
-    def _zipcode_listings(self, zipcode):
+    def _zipcode_listings(self, zipcode: int):
+        log.info(f'Scraping listings in {zipcode}')
         for_rent = self._scrape_results(f"{self.BASE_URL}/homes/for_rent/{zipcode}_rb/")
         log.info(f'Listings FOR_RENT in {zipcode}: {len(for_rent)}')
         for_sale = self._scrape_results(f"{self.BASE_URL}/homes/for_sale/{zipcode}_rb/")
         log.info(f'Listings FOR_SALE in {zipcode}: {len(for_sale)}')
-        return for_rent + for_sale
+        listings = for_rent + for_sale
+        if self.output_settings.get("write_raw_zipcodes"):
+            write_intermediary(listings, self.output_settings.get("raw_zipcode_file").format(zipcode))
+        return listings
 
     def _scrape_results(self, url, acc=None):
         if acc is None:
