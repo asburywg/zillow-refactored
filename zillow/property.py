@@ -9,23 +9,10 @@ from zillow.session import Session
 
 log = logging.getLogger(__name__)
 
-RENTAL = {
-    'homeStatus': 'status',
-    'hdpUrl': 'url',
-    'homeType': 'home_type',
-    'price': 'listed',
-    'streetAddress': 'street',
-    'bedrooms': 'beds',
-    'bathrooms': 'baths',
-    'livingArea': 'area',
-}
 
-RENTAL_COLS = ['state', 'city', 'zipcode']
-
-
-def format_apartment_data(data):
+def format_apartment_data(data, *formatting):
     fmt = Formatter(data)
-    fmt.select_rename_columns(RENTAL, RENTAL_COLS)
+    fmt.select_rename_columns(*formatting)
     fmt.filter_apply_column_func('url', lambda x: ~x.str.startswith('http'),
                                  lambda url: f"https://www.zillow.com{url}")
     return fmt.df
@@ -38,14 +25,18 @@ class Apartments:
         self.session = Session()
         self.partial_urls = urls
 
-    def df(self):
+    def df(self, *formatting):
         rental_urls = []
         for url in self.partial_urls:
             rental_urls.extend(self._get_rental_unit_urls(f"{self.BASE_URL}{url}"))
-        print(rental_urls)
+        log.debug(rental_urls)
         dfs = []
         for url in rental_urls:
-            dfs.append(format_apartment_data(Property(url).fetch()))
+            # TODO: parallel process
+            # TODO: cache lot_id for dev
+            data = Property(url).fetch()
+            df = format_apartment_data(data, *formatting)
+            dfs.append(df)
         return pd.concat(dfs)
         
     def _get_rental_unit_urls(self, url):

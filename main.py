@@ -1,11 +1,9 @@
 import json
 import logging
 
-import pandas as pd
-
 from zillow.listings import Search
-from zillow.formatter import ListingFormatter, DETAILS, HOME, ADDRESS
-from zillow.property import Property, Apartments
+from zillow.formatter import *
+from zillow.property import Apartments
 
 """
 Input: city, state ?? list of zip codes to exclude || list of zip codes
@@ -63,7 +61,9 @@ def format_data(listings):
     """apartments"""
     apartment_urls = data.apartment_urls()
     data.remove_apartments()
-    apt_df = Apartments(apartment_urls).df()
+
+    # formatting is fragmented, updates to `data` (listings df) must be applied to apartments df
+    apt_df = Apartments(apartment_urls).df(DETAILS_APT, ADDRESS_APT, HOME_APT)
     data.concat_df(apt_df)
 
     """calc columns"""

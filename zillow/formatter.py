@@ -105,6 +105,7 @@ class ListingFormatter:
         self.fmt.apply_column_func(name, round, 2)
 
 
+"""formatting listings"""
 # predefined sets of column mappings ('column_name': 'rename_column'} or ['column_name', ...]
 DETAILS = {
     "statusType": "status",
@@ -135,4 +136,19 @@ ZESTIMATE = {
 PRICE_CHANGE = {
     "hdpData.homeInfo.datePriceChanged": "price_change_date",
     "hdpData.homeInfo.priceChange": "price_change_amount",
+}
+
+"""corresponding formatting for apartments (data from homedetails)"""
+DETAILS_APT = {
+    "homeStatus": "status",
+    "hdpUrl": "url",
+    "homeType": "home_type",
+    "price": "listed",
+    "streetAddress": "street"
+}
+ADDRESS_APT = ['state', 'city', 'zipcode']
+HOME_APT = {
+    'bedrooms': 'beds',
+    'bathrooms': 'baths',
+    'livingArea': 'area'
 }
