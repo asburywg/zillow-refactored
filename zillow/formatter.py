@@ -104,6 +104,10 @@ class ListingFormatter:
         self.fmt.new_calc_column(name, operator.truediv, price_col, area_col)
         self.fmt.apply_column_func(name, round, 2)
 
+    def fix_urls(self, url_col='url'):
+        self.fmt.filter_apply_column_func(url_col, lambda x: ~x.str.startswith('http'),
+                                          lambda url: f"https://www.zillow.com{url}")
+
 
 """formatting listings"""
 # predefined sets of column mappings ('column_name': 'rename_column'} or ['column_name', ...]

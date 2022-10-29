@@ -2,20 +2,10 @@ import json
 import logging
 import re
 from typing import List
-import pandas as pd
-from zillow.formatter import Formatter
 from zillow.session import Session
 
 
 log = logging.getLogger(__name__)
-
-
-def format_apartment_data(data, *formatting):
-    fmt = Formatter(data)
-    fmt.select_rename_columns(*formatting)
-    fmt.filter_apply_column_func('url', lambda x: ~x.str.startswith('http'),
-                                 lambda url: f"https://www.zillow.com{url}")
-    return fmt.df
 
 
 class Apartments:
@@ -25,19 +15,17 @@ class Apartments:
         self.session = Session()
         self.partial_urls = urls
 
-    def df(self, *formatting):
+    def data(self):
         rental_urls = []
         for url in self.partial_urls:
             rental_urls.extend(self._get_rental_unit_urls(f"{self.BASE_URL}{url}"))
         log.debug(rental_urls)
-        dfs = []
+        unit_data = []
         for url in rental_urls:
             # TODO: parallel process
             # TODO: cache lot_id for dev
-            data = Property(url).fetch()
-            df = format_apartment_data(data, *formatting)
-            dfs.append(df)
-        return pd.concat(dfs)
+            unit_data.append(Property(url, self.session).fetch())
+        return unit_data
         
     def _get_rental_unit_urls(self, url):
         building = self._scrape_rental_results(url)

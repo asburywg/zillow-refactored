@@ -63,8 +63,11 @@ def format_data(listings):
     data.remove_apartments()
 
     # formatting is fragmented, updates to `data` (listings df) must be applied to apartments df
-    apt_df = Apartments(apartment_urls).df(DETAILS_APT, ADDRESS_APT, HOME_APT)
-    data.concat_df(apt_df)
+    apt_data = Apartments(apartment_urls).data()
+    apt_fmt = ListingFormatter(apt_data)
+    apt_fmt.select(DETAILS_APT, ADDRESS_APT, HOME_APT)
+    apt_fmt.fix_urls()
+    data.concat_df(apt_fmt.df)
 
     """calc columns"""
     data.price_per_sqft()
