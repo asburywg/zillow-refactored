@@ -1,9 +1,11 @@
 import json
 import logging
 
+import pandas as pd
+
 from zillow.listings import Search
 from zillow.formatter import ListingFormatter, DETAILS, HOME, ADDRESS
-from zillow.property import Property
+from zillow.property import Property, Apartments
 
 """
 Input: city, state ?? list of zip codes to exclude || list of zip codes
@@ -35,6 +37,13 @@ goal:
         - user input
 """
 
+"""
+partial apartment URL: "/b/the-thomas-columbus-oh-ByK4GB/"
+missing: url, house_type, listed, street (with unit), beds, baths, area
+contains multiple units: ['https://www.zillow.com/homedetails/7830-Alta-Dr-7802-206-Columbus-OH-43085/2071530435_zpid/', 'https://www.zillow.com/homedetails/7830-Alta-Dr-509-201-Columbus-OH-43085/2071503156_zpid/', 'https://www.zillow.com/homedetails/7830-Alta-Dr-7821-203-Columbus-OH-43085/2071506841_zpid/', 'https://www.zillow.com/homedetails/7830-Alta-Dr-7833-202-Columbus-OH-43085/2071507505_zpid/', 'https://www.zillow.com/homedetails/7830-Alta-Dr-503-103-Columbus-OH-43085/2071536922_zpid/']
+fetch property data for each unit url
+"""
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -42,21 +51,23 @@ def format_data(listings):
     """transform and format listing data"""
 
     data = ListingFormatter(listings)
+    # print(data.sample())
 
     """filter"""
     # data.filter_for_sale()
     data.filter_for_rent()
 
-    # print(data.sample())
-
     """columns"""
-    data.select(DETAILS, ADDRESS, HOME, ["units", "lotId"])
-    data.price_per_sqft()
-    # data.fix_urls()
+    data.select(DETAILS, ADDRESS, HOME)
 
-    # TODO: parse rental street unit num
-    # TODO: explode rental units
-    # TODO: try getting home details for rentals
+    """apartments"""
+    apartment_urls = data.apartment_urls()
+    data.remove_apartments()
+    apt_df = Apartments(apartment_urls).df()
+    data.concat_df(apt_df)
+
+    """calc columns"""
+    data.price_per_sqft()
 
     print(data.df)
 
@@ -68,13 +79,5 @@ def main():
     # TODO: export formatted
 
 
-# if __name__ == "__main__":
-#     main()
-
-
-# url = "https://www.zillow.com/homedetails/7830-Alta-Dr-503-103-Columbus-OH-43085/2071536922_zpid/"
-# url = "/b/the-thomas-columbus-oh-ByK4GB/"
-# url = "/b/traditions-at-worthington-woods-worthington-oh-5gKnT7/"
-# url = "/b/187-wilson-dr-columbus-oh-5gpSDL/"
-url = "/b/summerside-apartments-columbus-oh-5wyXP7/"
-rp = Property(url=url)
+if __name__ == "__main__":
+    main()

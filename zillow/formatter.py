@@ -78,6 +78,15 @@ class ListingFormatter:
     def reset(self):
         self.fmt = Formatter(self.listings)
 
+    def apartment_urls(self):
+        return list(self.fmt.df.loc[~self.fmt.df['url'].str.startswith('http')]['url'])
+
+    def remove_apartments(self):
+        self.fmt.df = self.df.loc[self.fmt.df['url'].str.startswith('http')]
+
+    def concat_df(self, df):
+        self.fmt.df = pd.concat([self.fmt.df, df])
+
     """filters"""
 
     def filter_for_rent(self):
@@ -94,10 +103,6 @@ class ListingFormatter:
     def price_per_sqft(self, name="price_per_sqft", price_col='listed', area_col='area'):
         self.fmt.new_calc_column(name, operator.truediv, price_col, area_col)
         self.fmt.apply_column_func(name, round, 2)
-
-    def fix_urls(self, url_col='url'):
-        self.fmt.filter_apply_column_func(url_col, lambda x: ~x.str.startswith('http'),
-                                          lambda url: f"https://www.zillow.com{url}")
 
 
 # predefined sets of column mappings ('column_name': 'rename_column'} or ['column_name', ...]
