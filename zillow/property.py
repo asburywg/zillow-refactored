@@ -29,9 +29,12 @@ class Apartments:
         
     def _get_rental_unit_urls(self, url):
         building = self._scrape_rental_results(url)
-        # print(json.dumps(building))
         address = building.get("address")
         floor_plans = building.get("floorPlans")
+        if not floor_plans:
+            # TODO: debug why
+            log.error(f"Failed to find units for {url}")
+            return []
         fallback = building.get("bestMatchedUnit").get("hdpUrl")
         unit_urls = []
         for plan in floor_plans:
@@ -40,7 +43,7 @@ class Apartments:
                 unit_urls.append(f"{self.BASE_URL}{fallback.replace(building.get('zpid'), plan.get('zpid'))}")
                 continue
             for unit in plan.get("units"):
-                unit_num = '-'.join(re.findall(r'[0-9]+', unit.get('unitNumber')))
+                unit_num = '-'.join(re.findall(r'[0-9]+', str(unit.get('unitNumber'))))
                 unit_urls.append(f"{self.BASE_URL}/homedetails/{address.get('streetAddress').replace(' ', '-')}"
                                  f"-{unit_num}-{address.get('city')}-{address.get('state')}-{address.get('zipcode')}/"
                                  f"{unit.get('zpid')}_zpid/")

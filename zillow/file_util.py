@@ -31,3 +31,8 @@ def read_json(file: str):
 
 def is_json_file(file: str):
     return Path(file).suffix == ".json"
+
+
+def export_csv(df, file: str):
+    mkdir(file)
+    df.to_csv(file, index=False)

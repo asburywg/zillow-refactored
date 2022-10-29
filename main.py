@@ -1,10 +1,11 @@
-import json
 import logging
 
+from zillow.file_util import export_csv
 from zillow.listings import Search
 from zillow.formatter import *
 from zillow.property import Apartments
 
+# TODO: mv to README
 """
 Input: city, state ?? list of zip codes to exclude || list of zip codes
 ---
@@ -53,13 +54,14 @@ def format_data(listings):
 
     """filter"""
     # data.filter_for_sale()
-    data.filter_for_rent()
+    # data.filter_for_rent()
 
     """columns"""
     data.select(DETAILS, ADDRESS, HOME)
 
     """apartments"""
     apartment_urls = data.apartment_urls()
+    logging.info(f"Fetching more data for {len(apartment_urls)} apartments")
     data.remove_apartments()
 
     # formatting is fragmented, updates to `data` (listings df) must be applied to apartments df
@@ -72,14 +74,18 @@ def format_data(listings):
     """calc columns"""
     data.price_per_sqft()
 
-    print(data.df)
+    return data.df
 
 
 def main():
-    search = Search(zipcodes=[43085])
+    # city, state = "columbus", "ohio"
+    # search = Search(city=city, state=state)
+    zipcodes = [43085, 43201, 43202, 43203, 43204]
+    search = Search(zipcodes=zipcodes)
+    # TODO: collect stats by zipcode (rent/sale)
     listings = search.get_all_listings(read_cache=True)
-    format_data(listings)
-    # TODO: export formatted
+    df = format_data(listings)
+    export_csv(df, "./data/results/listings-1.csv")
 
 
 if __name__ == "__main__":
