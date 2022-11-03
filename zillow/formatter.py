@@ -149,6 +149,7 @@ PRICE_CHANGE = {
 }
 
 """corresponding formatting for apartments (data from homedetails)"""
+# TODO: add "lot_area" and "lot_area_unit"
 DETAILS_APT = {
     "homeStatus": "status",
     "hdpUrl": "url",
