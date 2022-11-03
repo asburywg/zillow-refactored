@@ -19,13 +19,6 @@ def format_data(listings, apartment_file=None, include_apartments=False):
     """transform and format listing data"""
 
     data = ListingFormatter(listings)
-    # print(data.sample())
-
-    """filter"""
-    # data.filter_for_sale()
-    # data.filter_for_rent()
-
-    """columns"""
     data.select(DETAILS, ADDRESS, HOME)
 
     """apartments"""
