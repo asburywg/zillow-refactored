@@ -100,26 +100,30 @@ class Search:
     def _scrape_results(self, url, acc=None):
         if acc is None:
             acc = []
-        page_text = self.session.get(url).text
-        query_state = re.search(r'!--(\{"queryState".*?)-->', page_text)
-        if not query_state:
-            raise Exception("Bad result from Zillow", page_text)
-        data = json.loads(query_state.group(1))
-        """control pagination"""
-        current_page = data.get("queryState").get("pagination").get("currentPage") if "pagination" in data.get(
-            "queryState") else 1
-        total_pages = data.get('cat1').get("searchList").get("totalPages")
-        next_url = data.get('cat1').get("searchList").get("pagination").get('nextUrl') if "pagination" in data.get(
-            'cat1').get("searchList") else None
-        total_listings = data.get("cat1").get("searchList").get("totalResultCount")
-        """results"""
-        res = data.get('cat1').get("searchResults").get("listResults")
-        acc.extend(res)
-        log.debug(f'Progress: {current_page} of {total_pages} pages ({len(acc)} of {total_listings} listings)')
-        if next_url and current_page < total_pages:
-            return self._scrape_results(f"{self.BASE_URL}{next_url}", acc)
-        assert len(acc) == total_listings  # TODO: rm
-        return acc
+        try:
+            page_text = self.session.get(url).text
+            query_state = re.search(r'!--(\{"queryState".*?)-->', page_text)
+            if not query_state:
+                raise Exception("Bad result from Zillow", page_text)
+            data = json.loads(query_state.group(1))
+            """control pagination"""
+            current_page = data.get("queryState").get("pagination").get("currentPage") if "pagination" in data.get(
+                "queryState") else 1
+            total_pages = data.get('cat1').get("searchList").get("totalPages")
+            next_url = data.get('cat1').get("searchList").get("pagination").get('nextUrl') if "pagination" in data.get(
+                'cat1').get("searchList") else None
+            total_listings = data.get("cat1").get("searchList").get("totalResultCount")
+            """results"""
+            res = data.get('cat1').get("searchResults").get("listResults")
+            acc.extend(res)
+            log.debug(f'Progress: {current_page} of {total_pages} pages ({len(acc)} of {total_listings} listings)')
+            if next_url and current_page < total_pages:
+                return self._scrape_results(f"{self.BASE_URL}{next_url}", acc)
+            # assert len(acc) == total_listings
+            return acc
+        except Exception as e:
+            log.error(f"Failed to scrape: {url}", e)
+            return []
 
     def print_output_settings(self):
         log.info(f"OUTPUT SETTINGS:\n\tCache raw listings by zipcode:\t"

@@ -95,6 +95,9 @@ class ListingFormatter:
     def filter_for_sale(self):
         self.fmt.filter('statusType', operator.eq, "FOR_SALE")
 
+    def remove_dupes(self, from_col: str = 'status'):
+        self.fmt.df = self.fmt.df[self.fmt.df[from_col].notna()]
+
     """custom columns"""
 
     def select(self, *args):
