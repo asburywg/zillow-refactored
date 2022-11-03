@@ -119,7 +119,9 @@ DETAILS = {
     "statusType": "status",
     "detailUrl": "url",
     "hdpData.homeInfo.homeType": "home_type",
-    "unformattedPrice": "listed"
+    "unformattedPrice": "listed",
+    "hdpData.homeInfo.lotAreaValue": "lot_area",
+    "hdpData.homeInfo.lotAreaUnit": "lot_area_unit"
 }
 ADDRESS = {
     "addressStreet": "street",
