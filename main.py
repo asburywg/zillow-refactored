@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 APARTMENT_URL_FILE = "./data/results/{}/{}-apartments.json"
 LISTINGS_FILE = "./data/results/{}/{}-listings.csv"
+ZIPCODE_FILE = "./data/results/{}/{}-zipcodes.json"
 
 
 def format_data(listings, apartment_file=None, include_apartments=False):
@@ -48,14 +49,23 @@ def format_data(listings, apartment_file=None, include_apartments=False):
     return data.df
 
 
+def stats(df):
+    by_status = df.groupby('status').agg({'url': 'count', 'listed': 'mean'}).reset_index()
+    by_zipcode = df.groupby(['zipcode', 'status']).agg(
+        {'url': 'count', 'listed': 'mean', 'price_per_sqft': 'mean'}).reset_index()
+    print(by_zipcode)
+    print(by_status)
+
+
 def main():
+    date = datetime.now().date().strftime("%Y%m%d")
     city, state = "columbus", "ohio"
     search = Search(city=city, state=state)
-    listings = search.get_all_listings(read_cache=True)
-    # format and export
-    date = datetime.now().date().strftime("%Y%m%d")
+    write_json(search.zipcodes, ZIPCODE_FILE.format(date, city))
+    listings = search.get_all_listings(read_cache=False)
     df = format_data(listings, APARTMENT_URL_FILE.format(date, city))
     export_csv(df, LISTINGS_FILE.format(date, city))
+    stats(df)
 
 
 if __name__ == "__main__":
