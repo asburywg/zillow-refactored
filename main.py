@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO)
 APARTMENT_URL_FILE = "./data/results/{}/{}-apartments.json"
 LISTINGS_FILE = "./data/results/{}/{}-listings.csv"
 FOR_SALE_LISTINGS_FILE = "./data/results/{}/{}-for-sale.csv"
+FOR_RENT_LISTINGS_FILE = "./data/results/{}/{}-for-rent.csv"
 ZIPCODE_FILE = "./data/results/{}/{}-zipcodes.json"
 
 
@@ -68,6 +69,7 @@ def main():
     export_csv(df, LISTINGS_FILE.format(date, city))
     stats(df)
     export_csv(df[df["status"] == "FOR_SALE"], FOR_SALE_LISTINGS_FILE.format(date, city))
+    export_csv(df[df["status"] == "FOR_RENT"], FOR_RENT_LISTINGS_FILE.format(date, city))
 
 
 if __name__ == "__main__":
