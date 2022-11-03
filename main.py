@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 APARTMENT_URL_FILE = "./data/results/{}/{}-apartments.json"
 LISTINGS_FILE = "./data/results/{}/{}-listings.csv"
+FOR_SALE_LISTINGS_FILE = "./data/results/{}/{}-for-sale.csv"
 ZIPCODE_FILE = "./data/results/{}/{}-zipcodes.json"
 
 
@@ -62,10 +63,11 @@ def main():
     city, state = "columbus", "ohio"
     search = Search(city=city, state=state)
     write_json(search.zipcodes, ZIPCODE_FILE.format(date, city))
-    listings = search.get_all_listings(read_cache=False)
+    listings = search.get_all_listings(read_cache=True)
     df = format_data(listings, APARTMENT_URL_FILE.format(date, city))
     export_csv(df, LISTINGS_FILE.format(date, city))
     stats(df)
+    export_csv(df[df["status"] == "FOR_SALE"], FOR_SALE_LISTINGS_FILE.format(date, city))
 
 
 if __name__ == "__main__":
