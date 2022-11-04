@@ -52,9 +52,8 @@ def stats(df):
     print(by_status)
 
 
-def main():
+def export_listings(city="columbus", state="ohio"):
     date = datetime.now().date().strftime("%Y%m%d")
-    city, state = "columbus", "ohio"
     search = Search(city=city, state=state)
     write_json(search.zipcodes, ZIPCODE_FILE.format(date, city))
     listings = search.get_all_listings(read_cache=True)
@@ -66,4 +65,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    export_listings()
