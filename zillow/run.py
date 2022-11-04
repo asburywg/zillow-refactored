@@ -1,12 +1,11 @@
-from datetime import datetime
 import logging
 from .file_util import export_csv, write_json
 from .listings import Search
 from .formatter import *
 from .property import Apartments
 
-FOR_SALE_LISTINGS_FILE = "{}-for-sale.csv"
-FOR_RENT_LISTINGS_FILE = "{}-for-rent.csv"
+FOR_SALE_LISTINGS_FILE = "for-sale.csv"
+FOR_RENT_LISTINGS_FILE = "for-rent.csv"
 
 
 def format_data(listings, apartment_file=None, include_apartments=False):
@@ -45,10 +44,9 @@ class ExportListings:
         self.state = state
 
     def run(self):
-        date = datetime.now().date().strftime("%Y%m%d")
         search = Search(city=self.city, state=self.state)
         search.set_output_settings(cache_raw_zipcodes=False)
         listings = search.get_all_listings()
         df = format_data(listings)
-        export_csv(df[df["status"] == "FOR_SALE"], FOR_SALE_LISTINGS_FILE.format(date))
-        export_csv(df[df["status"] == "FOR_RENT"], FOR_RENT_LISTINGS_FILE.format(date))
+        export_csv(df[df["status"] == "FOR_SALE"], FOR_SALE_LISTINGS_FILE)
+        export_csv(df[df["status"] == "FOR_RENT"], FOR_RENT_LISTINGS_FILE)
