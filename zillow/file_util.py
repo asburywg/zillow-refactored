@@ -35,4 +35,5 @@ def is_json_file(file: str):
 
 def export_csv(df, file: str):
     mkdir(file)
+    print(f"Exported: {file}")
     df.to_csv(file, index=False)
