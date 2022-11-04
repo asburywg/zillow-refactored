@@ -3,9 +3,9 @@ import logging
 import re
 from typing import List
 
-from zillow.file_util import write_json, file_exists, read_json, is_json_file
-from zillow.session import Session
-from zillow.zipcode_util import fetch_zipcodes
+from .file_util import write_json, file_exists, read_json, is_json_file
+from .session import Session
+from .zipcode_util import fetch_zipcodes
 
 log = logging.getLogger(__name__)
 

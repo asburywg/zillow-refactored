@@ -2,7 +2,7 @@ import json
 import logging
 import re
 from typing import List
-from zillow.session import Session
+from .session import Session
 
 
 log = logging.getLogger(__name__)
