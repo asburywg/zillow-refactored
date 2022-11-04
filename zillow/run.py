@@ -47,7 +47,8 @@ class ExportListings:
     def run(self):
         date = datetime.now().date().strftime("%Y%m%d")
         search = Search(city=self.city, state=self.state)
-        listings = search.get_all_listings(read_cache=True)
+        search.set_output_settings(cache_raw_zipcodes=False)
+        listings = search.get_all_listings()
         df = format_data(listings)
-        export_csv(df[df["status"] == "FOR_SALE"], FOR_SALE_LISTINGS_FILE.format(date, city))
-        export_csv(df[df["status"] == "FOR_RENT"], FOR_RENT_LISTINGS_FILE.format(date, city))
+        export_csv(df[df["status"] == "FOR_SALE"], FOR_SALE_LISTINGS_FILE.format(date, self.city))
+        export_csv(df[df["status"] == "FOR_RENT"], FOR_RENT_LISTINGS_FILE.format(date, self.city))
